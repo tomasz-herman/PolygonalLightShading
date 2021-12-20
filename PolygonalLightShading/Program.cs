@@ -25,7 +25,9 @@ namespace PolygonalLightShading
         private bool showMesh = false;
         private bool edgesOnly = false;
         private bool showFlatPatch = false;
-        
+
+        private bool loaded = false;
+
         public static void Main(string[] args)
         {
             using (Program program = new Program(GameWindowSettings.Default, NativeWindowSettings.Default))
@@ -54,6 +56,8 @@ namespace PolygonalLightShading
             light = new System.Numerics.Vector3(0, 5, 0);
             imguiController = new ImGuiController(Size.X, Size.Y);
 
+            loaded = true;
+
             GL.ClearColor(0.4f, 0.7f, 0.9f, 1.0f);
             GL.Disable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
@@ -77,6 +81,8 @@ namespace PolygonalLightShading
         protected override void OnResize(ResizeEventArgs e)
         {
             base.OnResize(e);
+            if (!loaded)
+                return;
             camera.Aspect = (float) Size.X / Size.Y;
             GL.Viewport(0, 0, Size.X, Size.Y);
             imguiController.WindowResized(Size.X, Size.Y);
