@@ -17,7 +17,7 @@ namespace PolygonalLightShading
             Count = indices.Length;
             Load(positions, indices);
         }
-        
+
         public void Load(float[] positions, int[] indices) {
             Vao = GL.GenVertexArray();
             GL.BindVertexArray(Vao);
@@ -25,7 +25,7 @@ namespace PolygonalLightShading
             LoadIndices(indices);
             GL.BindVertexArray(0);
         }
-        
+
         public void LoadData(float[] data, int index, int size) {
             var vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
@@ -35,7 +35,7 @@ namespace PolygonalLightShading
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             Vbos.Add(vbo);
         }
-        
+
         public void LoadIndices(int[] data) {
             var vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, vbo);
