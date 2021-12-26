@@ -12,7 +12,7 @@ namespace PolygonalLightShading
         public float Aspect { get; set; } = 16f / 9f;
         public Vector3 Position { get; private set; } = new Vector3(0, 0, 5);
         public float Sensitivity { get; set; } = 0.0015f;
-        public float Speed { get; set; } = 5.0f;
+        public float Speed { get; set; } = 0.5f;
         
         private float _pitch;
         public float Pitch

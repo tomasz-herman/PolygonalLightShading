@@ -24,7 +24,7 @@ uniform bool twoSided;
 uniform sampler2D ltc_mat;
 uniform sampler2D ltc_mag;
 
-uniform mat4  view;
+uniform mat4  invView;
 uniform vec2  resolution;
 uniform int   sampleCount;
 
@@ -80,7 +80,8 @@ bool RayRectIntersect(Ray ray, Rect rect, out float t)
 
 // Camera functions
 ///////////////////
-
+const float far = 100;
+const float near = 1;
 Ray GenerateCameraRay(float u1, float u2)
 {
     Ray ray;
@@ -88,18 +89,9 @@ Ray GenerateCameraRay(float u1, float u2)
     // Random jitter within pixel for AA
     vec2 xy = 2.0*(gl_FragCoord.xy)/resolution - vec2(1.0);
 
-    ray.dir = normalize(vec3(xy, 2.0));
-
-    float focalDistance = 2.0;
-    float ft = focalDistance/ray.dir.z;
-    vec3 pFocus = ray.dir*ft;
-
-    ray.origin = vec3(0);
-    ray.dir    = normalize(pFocus - ray.origin);
-
     // Apply camera transform
-    ray.origin = (view*vec4(ray.origin, 1)).xyz;
-    ray.dir    = (view*vec4(ray.dir,    0)).xyz;
+    ray.origin = (invView * vec4(xy, -1.0, 1.0) * near).xyz;
+    ray.dir = normalize((invView * vec4(xy * (far - near), far + near, far - near)).xyz);
 
     return ray;
 }
@@ -417,5 +409,5 @@ void main()
     if ((distToRect < distToFloor) || !hitFloor)
     col = lcol;
 
-    gl_FragColor = vec4(col, 1.0);
+    gl_FragColor = vec4(ToSRGB(col), 1.0);
 }

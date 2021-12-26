@@ -14,7 +14,7 @@ namespace PolygonalLightShading
     public class Program : GameWindow
     {
         private ImGuiController imGuiController;
-        private Shader ltcShader, blitShader;
+        private Shader ltcShader;
         private Camera camera;
 
         private int ltc_mat;
@@ -49,7 +49,6 @@ namespace PolygonalLightShading
             base.OnLoad();
 
             ltcShader = new Shader(("pass.vert", ShaderType.VertexShader), ("ltc.frag", ShaderType.FragmentShader));
-            blitShader = new Shader(("pass.vert", ShaderType.VertexShader), ("blit.frag", ShaderType.FragmentShader));
             camera = new PerspectiveCamera();
             imGuiController = new ImGuiController(Size.X, Size.Y);
 
@@ -146,12 +145,7 @@ namespace PolygonalLightShading
             ltcShader.LoadFloat("roty", roty);
             ltcShader.LoadFloat("rotz", rotz);
             ltcShader.LoadInteger("twoSided", twoSided ? 1 : 0);
-            
-            Matrix4 view = Matrix4.CreateTranslation(0, 6, -0.5f) * 
-                           Matrix4.CreateRotationX(MathHelper.DegreesToRadians(10f)) * 
-                           Matrix4.CreateRotationY(MathHelper.DegreesToRadians(0f));
-
-            ltcShader.LoadMatrix4("view", view);
+            ltcShader.LoadMatrix4("invView", camera.GetProjectionViewMatrix().Inverted());
             ltcShader.LoadFloat2("resolution", new Vector2(Size.X, Size.Y));
             ltcShader.LoadFloat("sampleCount", 0);
             
