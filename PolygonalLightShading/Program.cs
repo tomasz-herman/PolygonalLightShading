@@ -82,7 +82,7 @@ namespace PolygonalLightShading
             ltc_mag = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, ltc_mag);
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Alpha, 64, 64, 0, PixelFormat.Alpha, PixelType.Float, Utils.Read("ltc_mag.txt"));
-            
+
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Linear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int) TextureWrapMode.ClampToEdge);
