@@ -6,15 +6,15 @@ namespace PolygonalLightShading
 {
     public abstract class Camera
     {
-        public Vector3 Front { get; private set; } = -Vector3.UnitZ;
+        public Vector3 Front { get; private set; } = Vector3.UnitZ;
         public Vector3 Up { get; private set; } = Vector3.UnitY;
         public Vector3 Right { get; private set; } = Vector3.UnitX;
         public float Aspect { get; set; } = 16f / 9f;
-        public Vector3 Position { get; private set; } = new Vector3(0, 0, 5);
+        public Vector3 Position { get; private set; } = new Vector3(0, 6, 0.5f);
         public float Sensitivity { get; set; } = 0.0015f;
-        public float Speed { get; set; } = 0.5f;
+        public float Speed { get; set; } = 5.0f;
         
-        private float _pitch;
+        private float _pitch = MathHelper.DegreesToRadians(-10);
         public float Pitch
         {
             get => _pitch;
@@ -26,7 +26,7 @@ namespace PolygonalLightShading
             }
         }
         
-        private float _yaw = -MathHelper.PiOver2;
+        private float _yaw = MathHelper.PiOver2;
         public float Yaw
         {
             get => _yaw;
@@ -54,7 +54,7 @@ namespace PolygonalLightShading
             Position += Front * dz + Up * dy + Right * dx;
         }
         
-        private void UpdateVectors()
+        public void UpdateVectors()
         {
             Front = new Vector3
             {

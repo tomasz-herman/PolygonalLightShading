@@ -13,7 +13,7 @@ namespace PolygonalLightShading
             set => _fov = MathHelper.DegreesToRadians(value);
         }
         
-        public float NearPlane { get; set; } = 0.01f;
+        public float NearPlane { get; set; } = 1f;
         public float FarPlane { get; set; } = 100f;
         
         public override void HandleInput(KeyboardState keyboard, MouseState mouse, float dt)

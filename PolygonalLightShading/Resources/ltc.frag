@@ -80,7 +80,6 @@ bool RayRectIntersect(Ray ray, Rect rect, out float t)
 
 // Camera functions
 ///////////////////
-const float far = 100;
 const float near = 1;
 Ray GenerateCameraRay(float u1, float u2)
 {
@@ -89,9 +88,14 @@ Ray GenerateCameraRay(float u1, float u2)
     // Random jitter within pixel for AA
     vec2 xy = 2.0*(gl_FragCoord.xy)/resolution - vec2(1.0);
 
+    vec4 from = invView * vec4(xy, -near, 1);
+    vec4 to = invView * vec4(xy, near, 1);
+    from /= from.w;
+    to /= to.w;
+
     // Apply camera transform
-    ray.origin = (invView * vec4(xy, -1.0, 1.0) * near).xyz;
-    ray.dir = normalize((invView * vec4(xy * (far - near), far + near, far - near)).xyz);
+    ray.origin = from.xyz;
+    ray.dir = normalize(to.xyz - from.xyz);
 
     return ray;
 }
