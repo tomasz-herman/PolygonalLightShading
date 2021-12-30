@@ -72,7 +72,7 @@ namespace PolygonalLightShading
             // load textures
             ltc_mat = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, ltc_mat);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 64, 64, 0, PixelFormat.Rgba, PixelType.Float, Utils.Read("ltc_mat.txt"));
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba32f, 64, 64, 0, PixelFormat.Rgba, PixelType.Float, Utils.Read("ltc_mat.txt"));
             
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Linear);
