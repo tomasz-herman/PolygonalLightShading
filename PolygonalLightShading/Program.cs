@@ -168,7 +168,7 @@ namespace PolygonalLightShading
         private void RenderGui()
         {
             ImGui.Begin("Options");
-            ImGui.SliderFloat("Roughness", ref roughness, 0.02f, 1f);
+            ImGui.SliderFloat("Roughness", ref roughness, 0.00f, 1f);
             ImGui.ColorPicker3("Diffuse Color", ref dcolor);
             ImGui.ColorPicker3("Specular Color", ref scolor);
             ImGui.SliderFloat("Light Intensity", ref intensity, 0.01f, 10f);
