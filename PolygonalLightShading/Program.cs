@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Dear_ImGui_Sample;
 using ImGuiNET;
 using OpenTK.Graphics.OpenGL4;
@@ -34,6 +35,9 @@ namespace PolygonalLightShading
 
         private Mesh quad;
 
+        private Vector3 ambientColor;
+        private Vector3[] lightVertices;
+
         public static void Main(string[] args)
         {
             using Program program = new Program(GameWindowSettings.Default, NativeWindowSettings.Default);
@@ -48,7 +52,7 @@ namespace PolygonalLightShading
         {
             base.OnLoad();
 
-            ltcShader = new Shader(("pass.vert", ShaderType.VertexShader), ("ltc.frag", ShaderType.FragmentShader));
+            ltcShader = new Shader(("pls.vert", ShaderType.VertexShader), ("pls.frag", ShaderType.FragmentShader));
             camera = new PerspectiveCamera();
             camera.UpdateVectors();
             imGuiController = new ImGuiController(Size.X, Size.Y);
@@ -59,16 +63,27 @@ namespace PolygonalLightShading
             GL.Disable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Lequal);
-            
+
             // load quad
+            float planeY = 0.0f;
             quad = new Mesh(new[] { 
-                -1.0f, -1.0f, 0.0f, 
-                 1.0f, -1.0f, 0.0f, 
-                -1.0f,  1.0f, 0.0f, 
-                 1.0f,  1.0f, 0.0f }, 
+                -20.0f, planeY, 0.0f, 
+                 20.0f, planeY, 0.0f, 
+                -20.0f, planeY, 50.0f, 
+                 20.0f, planeY, 50.0f }, 
                 new[] { 0, 1, 2, 2, 1, 3 }, 
                 PrimitiveType.Triangles);
-            
+
+            ambientColor = new Vector3(0.1f, 0.1f, 0.1f);
+
+            lightVertices = new Vector3[]
+            {
+                new Vector3(-5, 1, 32),
+                new Vector3(5, 1, 32),
+                new Vector3(5, 11, 32),
+                new Vector3(-5, 11, 32),
+            };
+
             // load textures
             ltc_mat = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, ltc_mat);
@@ -141,14 +156,22 @@ namespace PolygonalLightShading
             ltcShader.LoadFloat3("dcolor", new Vector3(dcolor.X, dcolor.Y, dcolor.Z));
             ltcShader.LoadFloat3("scolor", new Vector3(scolor.X, scolor.Y, scolor.Z));
             ltcShader.LoadFloat("intensity", intensity);
-            ltcShader.LoadFloat("width", width);
-            ltcShader.LoadFloat("height", height);
-            ltcShader.LoadFloat("roty", roty);
-            ltcShader.LoadFloat("rotz", rotz);
             ltcShader.LoadInteger("twoSided", twoSided ? 1 : 0);
-            ltcShader.LoadMatrix4("invView", camera.GetProjectionViewMatrix().Inverted());
-            ltcShader.LoadFloat2("resolution", new Vector2(Size.X, Size.Y));
-            ltcShader.LoadFloat("sampleCount", 0);
+            ltcShader.LoadMatrix4("view", camera.GetViewMatrix());
+            ltcShader.LoadMatrix4("proj", camera.GetProjectionMatrix());
+            ltcShader.LoadMatrix4("model", Matrix4.Identity);
+            ltcShader.LoadFloat3("cameraPosition", camera.Position);
+            ltcShader.LoadFloat3("ambient", ambientColor);
+
+            //TODO light vertices unchangeable, add light model matrices
+            var lightPos = new List<float>();
+            foreach(var pos in lightVertices)
+            {
+                lightPos.Add(pos.X);
+                lightPos.Add(pos.Y);
+                lightPos.Add(pos.Z);
+            }
+            ltcShader.LoadFloat3("lightVertices", lightPos.ToArray());
             
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, ltc_mat);

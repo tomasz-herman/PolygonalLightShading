@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using OpenTK.Graphics.OpenGL4;
 
 namespace PolygonalLightShading
@@ -22,6 +24,25 @@ namespace PolygonalLightShading
             Vao = GL.GenVertexArray();
             GL.BindVertexArray(Vao);
             LoadData(positions, 0, 3);
+            //TODO load normals and colors properly
+            Random rnd = new Random(3334);
+            var normals = new List<float>();
+            var colors = new List<float>();
+            int vCount = positions.Length / 3;
+            for(int i = 0; i < vCount; i++)
+            {
+                normals.Add(0);
+                normals.Add(1);
+                normals.Add(0);
+
+                colors.Add(0.2f + 0.8f * (float)rnd.NextDouble());
+                colors.Add(0.2f + 0.8f * (float)rnd.NextDouble());
+                colors.Add(0.2f + 0.8f * (float)rnd.NextDouble());
+                colors.Add(1);
+            }
+            LoadData(normals.ToArray(), 1, 3);
+            LoadData(colors.ToArray(), 2, 4);
+
             LoadIndices(indices);
             GL.BindVertexArray(0);
         }

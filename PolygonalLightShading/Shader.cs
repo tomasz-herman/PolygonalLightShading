@@ -109,7 +109,13 @@ namespace PolygonalLightShading
             int location = GL.GetUniformLocation(_handle, name);
             GL.Uniform3(location, ref value);
         }
-                
+
+        public void LoadFloat3(string name, float[] values)
+        {
+            int location = GL.GetUniformLocation(_handle, name);
+            GL.Uniform3(location, values.Length/3, values);
+        }
+
         public void LoadFloat4(string name, Vector4 value)
         {
             int location = GL.GetUniformLocation(_handle, name);
