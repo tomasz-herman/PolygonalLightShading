@@ -19,7 +19,10 @@ uniform sampler2D ltc_mag;
 uniform vec3  cameraPosition;
 uniform vec3  ambient;
 
-uniform vec3 lightVertices[4];
+const int MAX_QUAD_LIGHTS = 16;
+
+uniform vec3 lightVertices[MAX_QUAD_LIGHTS];
+uniform int activeLightCount;
 
 const float LUT_SIZE  = 64.0;
 const float LUT_SCALE = (LUT_SIZE - 1.0)/LUT_SIZE;
@@ -237,18 +240,10 @@ vec3 ToSRGB(vec3 v)   { return PowVec3(v, 1.0/gamma); }
 
 void main()
 {
-    vec3 lightCoords[4];
-
-    lightCoords[0] = lightVertices[0];
-    lightCoords[1] = lightVertices[1];
-    lightCoords[2] = lightVertices[2];
-    lightCoords[3] = lightVertices[3];
-
     vec3 lcol = vec3(intensity);
     vec3 dcol = ToLinear(dcolor);
     vec3 scol = ToLinear(scolor);
-
-    vec3 col = vec3(0);
+   
 
     vec3 pos = position;
     vec3 N = normalize(normal);
@@ -266,13 +261,28 @@ void main()
     vec3(t.w,   0, t.x)
     );
 
-    vec3 spec = LTC_Evaluate(N, V, pos, Minv, lightCoords, twoSided);
-    spec *= texture2D(ltc_mag, uv).w;
+    vec3 lightingColor = vec3(0);
 
-    vec3 diff = LTC_Evaluate(N, V, pos, mat3(1), lightCoords, twoSided);
+    int lightCount = min(activeLightCount, MAX_QUAD_LIGHTS);
+    for(int i = 0; i < lightCount; i++)
+    {
+        vec3 lightCoords[4];
+        for(int j = 0; j < 4; j++)
+        {
+            lightCoords[j] = lightVertices[4*i + j];
+        }
 
-    col  = lcol*(scol*spec + dcol*diff);
-    col /= 2.0*pi;
+        vec3 spec = LTC_Evaluate(N, V, pos, Minv, lightCoords, twoSided);
+        spec *= texture2D(ltc_mag, uv).w;
 
-    gl_FragColor = color * vec4(ToSRGB(ambient + col), 1.0);
+        vec3 diff = LTC_Evaluate(N, V, pos, mat3(1), lightCoords, twoSided);
+
+        vec3 col = vec3(0);
+        col  = lcol*(scol*spec + dcol*diff);
+        col /= 2.0*pi;
+
+        lightingColor += col;
+    }
+
+    gl_FragColor = color * vec4(ToSRGB(ambient + lightingColor), 1.0);
 }

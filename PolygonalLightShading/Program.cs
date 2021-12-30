@@ -36,7 +36,8 @@ namespace PolygonalLightShading
         private Mesh quad;
 
         private Vector3 ambientColor;
-        private Vector3[] lightVertices;
+
+        private Lighting lighting;
 
         public static void Main(string[] args)
         {
@@ -76,13 +77,34 @@ namespace PolygonalLightShading
 
             ambientColor = new Vector3(0.1f, 0.1f, 0.1f);
 
-            lightVertices = new Vector3[]
-            {
-                new Vector3(-5, 1, 32),
-                new Vector3(5, 1, 32),
-                new Vector3(5, 11, 32),
-                new Vector3(-5, 11, 32),
-            };
+            lighting = new Lighting();
+
+            var light1 = new QuadLight(
+                new Vector3(-0.5f, -0.5f, 0),
+                new Vector3(0.5f, -0.5f, 0),
+                new Vector3(0.5f, 0.5f, 0),
+                new Vector3(-0.5f, 0.5f, 0)
+            );
+            light1.modelMatrix = Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(0, 6, 32);
+            lighting.Add(light1);
+
+            var light2 = new QuadLight(
+                new Vector3(-0.5f, -0.5f, 0),
+                new Vector3(0.5f, -0.5f, 0),
+                new Vector3(0.5f, 0.5f, 0),
+                new Vector3(-0.5f, 0.5f, 0)
+            );
+            light2.modelMatrix = Matrix4.CreateRotationY(1) * Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(10, 6, 25);
+            lighting.Add(light2);
+
+            var light3 = new QuadLight(
+                new Vector3(-0.5f, -0.5f, 0),
+                new Vector3(0.5f, -0.5f, 0),
+                new Vector3(0.5f, 0.5f, 0),
+                new Vector3(-0.5f, 0.5f, 0)
+            );
+            light3.modelMatrix = Matrix4.CreateRotationY(-1) * Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(-10, 6, 25);
+            lighting.Add(light3);
 
             // load textures
             ltc_mat = GL.GenTexture();
@@ -163,15 +185,8 @@ namespace PolygonalLightShading
             ltcShader.LoadFloat3("cameraPosition", camera.Position);
             ltcShader.LoadFloat3("ambient", ambientColor);
 
-            //TODO light vertices unchangeable, add light model matrices
-            var lightPos = new List<float>();
-            foreach(var pos in lightVertices)
-            {
-                lightPos.Add(pos.X);
-                lightPos.Add(pos.Y);
-                lightPos.Add(pos.Z);
-            }
-            ltcShader.LoadFloat3("lightVertices", lightPos.ToArray());
+            ltcShader.LoadFloat3("lightVertices", lighting.GetVertexData());
+            ltcShader.LoadInteger("activeLightCount", lighting.Count());
             
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, ltc_mat);
