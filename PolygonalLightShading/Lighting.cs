@@ -43,6 +43,20 @@ namespace PolygonalLightShading
             return data.ToArray();
         }
 
+        public float[] GetColorData()
+        {
+            var data = new List<float>();
+            foreach (var light in lights)
+            {
+                var color = light.Color;
+                data.Add(color.X);
+                data.Add(color.Y);
+                data.Add(color.Z);
+            }
+
+            return data.ToArray();
+        }
+
         public int Count() { return lights.Count; }
     }
 }

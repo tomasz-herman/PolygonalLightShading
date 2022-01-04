@@ -37,7 +37,7 @@ namespace PolygonalLightShading
         private List<Mesh> sceneObjects = new List<Mesh>();
 
         private Vector3 ambientColor;
-
+        private Vector3 lightOffColor = new Vector3(0, 0, 0);
         private Lighting lighting;
 
         public static void Main(string[] args)
@@ -63,15 +63,14 @@ namespace PolygonalLightShading
             loaded = true;
 
             GL.ClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-            GL.Disable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Lequal);
 
             // load quad
             float[] wallVertices = new float[] {
                 -0.5f, 0, -0.5f,
-                 0.5f, 0, -0.5f,
-                -0.5f, 0, 0.5f,
+                 -0.5f, 0, 0.5f,
+                0.5f, 0, -0.5f,
                  0.5f, 0, 0.5f };
             float[] wallNormals = new float[]{
                      0, 1, 0,
@@ -122,9 +121,9 @@ namespace PolygonalLightShading
 
             var light1 = new QuadLight(
                 new Vector3(-0.5f, -0.5f, 0),
-                new Vector3(0.5f, -0.5f, 0),
+                new Vector3(-0.5f, 0.5f, 0),
                 new Vector3(0.5f, 0.5f, 0),
-                new Vector3(-0.5f, 0.5f, 0)
+                new Vector3(0.5f, -0.5f, 0)
             );
             light1.ModelMatrix = Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(0, 6, 32);
             light1.Color = new Vector3(1, 0, 0);
@@ -132,9 +131,9 @@ namespace PolygonalLightShading
 
             var light2 = new QuadLight(
                 new Vector3(-0.5f, -0.5f, 0),
-                new Vector3(0.5f, -0.5f, 0),
+                new Vector3(-0.5f, 0.5f, 0),
                 new Vector3(0.5f, 0.5f, 0),
-                new Vector3(-0.5f, 0.5f, 0)
+                new Vector3(0.5f, -0.5f, 0)
             );
             light2.ModelMatrix = Matrix4.CreateRotationY(1) * Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(10, 6, 25);
             light2.Color = new Vector3(0, 1, 0);
@@ -142,9 +141,9 @@ namespace PolygonalLightShading
 
             var light3 = new QuadLight(
                 new Vector3(-0.5f, -0.5f, 0),
-                new Vector3(0.5f, -0.5f, 0),
+                new Vector3(-0.5f, 0.5f, 0),
                 new Vector3(0.5f, 0.5f, 0),
-                new Vector3(-0.5f, 0.5f, 0)
+                new Vector3(0.5f, -0.5f, 0)
             );
             light3.ModelMatrix = Matrix4.CreateRotationY(-1) * Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(-10, 6, 25);
             light3.Color = new Vector3(0, 0, 1);
@@ -213,7 +212,7 @@ namespace PolygonalLightShading
         {
             base.OnRenderFrame(args);
             
-            GL.Disable(EnableCap.CullFace);
+            GL.Enable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Lequal);
 
@@ -231,6 +230,7 @@ namespace PolygonalLightShading
             ltcShader.LoadFloat3("ambient", ambientColor);
 
             ltcShader.LoadFloat3("lightVertices", lighting.GetVertexData());
+            ltcShader.LoadFloat3("lightColors", lighting.GetColorData());
             ltcShader.LoadInteger("activeLightCount", lighting.Count());
             
             GL.ActiveTexture(TextureUnit.Texture0);
@@ -251,18 +251,19 @@ namespace PolygonalLightShading
             lightShader.LoadFloat("intensity", intensity);
             lightShader.LoadMatrix4("view", camera.GetViewMatrix());
             lightShader.LoadMatrix4("proj", camera.GetProjectionMatrix());
-            lightShader.LoadFloat3("cameraPosition", camera.Position);
-
-            lightShader.LoadFloat3("lightVertices", lighting.GetVertexData());
-            lightShader.LoadInteger("activeLightCount", lighting.Count());
             lightShader.LoadFloat3("ambient", ambientColor);
 
             foreach (var light in lighting)
             {
-                Mesh mesh = light.Mesh;
-                lightShader.LoadMatrix4("model", mesh.ModelMatrix);
+                lightShader.LoadMatrix4("model", light.ModelMatrix);
                 lightShader.LoadFloat3("lightColor", light.Color);
-                mesh.Render();
+
+                light.FrontMesh.Render();
+
+                if (!twoSided)
+                    lightShader.LoadFloat3("lightColor", lightOffColor);
+
+                light.BackMesh.Render();
             }
 
 

@@ -21,7 +21,8 @@ uniform vec3  ambient;
 
 const int MAX_QUAD_LIGHTS = 16;
 
-uniform vec3 lightVertices[MAX_QUAD_LIGHTS];
+uniform vec3 lightVertices[4 * MAX_QUAD_LIGHTS];
+uniform vec3 lightColors[MAX_QUAD_LIGHTS];
 uniform int activeLightCount;
 
 const float LUT_SIZE  = 64.0;
@@ -269,7 +270,8 @@ void main()
         vec3 lightCoords[4];
         for(int j = 0; j < 4; j++)
         {
-            lightCoords[j] = lightVertices[4*i + j];
+            //we use 3 - j because of CW/CCW issue
+            lightCoords[3 - j] = lightVertices[4*i + j];
         }
 
         vec3 spec = LTC_Evaluate(N, V, pos, Minv, lightCoords, twoSided);
@@ -281,7 +283,7 @@ void main()
         col  = lcol*(scol*spec + dcol*diff);
         col /= 2.0*pi;
 
-        lightingColor += col;
+        lightingColor += col * lightColors[i];
     }
 
     gl_FragColor = color * vec4(ToSRGB(ambient + lightingColor), 1.0);
