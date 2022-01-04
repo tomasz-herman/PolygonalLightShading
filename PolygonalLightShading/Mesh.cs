@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using OpenTK.Graphics.OpenGL4;
+using OpenTK.Mathematics;
 
 namespace PolygonalLightShading
 {
@@ -12,6 +13,7 @@ namespace PolygonalLightShading
         private List<int> Vbos { get; } = new ();
         public PrimitiveType Type { get; }
         public int Count { get; }
+        public Matrix4 ModelMatrix { get; set; } = Matrix4.Identity;
 
         public Mesh(float[] positions, float[] normals, float[] colors, int[] indices, PrimitiveType type)
         {

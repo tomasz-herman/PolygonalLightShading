@@ -33,7 +33,7 @@ namespace PolygonalLightShading
 
         private bool loaded = false;
 
-        private Mesh quad;
+        private List<Mesh> sceneObjects = new List<Mesh>();
 
         private Vector3 ambientColor;
 
@@ -66,25 +66,45 @@ namespace PolygonalLightShading
             GL.DepthFunc(DepthFunction.Lequal);
 
             // load quad
-            float planeY = 0.0f;
-            float planeBrightness = 0.2f;
-            quad = new Mesh(new float[] { 
-                -20.0f, planeY, 0.0f, 
-                 20.0f, planeY, 0.0f, 
-                -20.0f, planeY, 50.0f, 
-                 20.0f, planeY, 50.0f },
-                 new float[]{
+            float[] wallVertices = new float[] {
+                -0.5f, 0, -0.5f,
+                 0.5f, 0, -0.5f,
+                -0.5f, 0, 0.5f,
+                 0.5f, 0, 0.5f };
+            float[] wallNormals = new float[]{
                      0, 1, 0,
                      0, 1, 0,
                      0, 1, 0,
-                     0, 1, 0,},
-                 new float[] {
+                     0, 1, 0,};
+            float planeBrightness = 0.5f;
+            float[] wallColors = new float[] {
                  planeBrightness, planeBrightness, planeBrightness, 1,
                  planeBrightness, planeBrightness, planeBrightness, 1,
                  planeBrightness, planeBrightness, planeBrightness, 1,
-                 planeBrightness, planeBrightness, planeBrightness, 1,},
-                new[] { 0, 1, 2, 2, 1, 3 }, 
-                PrimitiveType.Triangles);
+                 planeBrightness, planeBrightness, planeBrightness, 1,};
+            int[] wallIndices = new int[] { 0, 1, 2, 2, 1, 3 };
+
+            float cubeSize = 40;
+            float halfpi = (float)Math.PI / 2f;
+            Mesh bottomWall = new Mesh(wallVertices, wallNormals, wallColors, wallIndices, PrimitiveType.Triangles);
+            bottomWall.ModelMatrix = Matrix4.CreateScale(cubeSize, cubeSize, cubeSize) * Matrix4.CreateTranslation(0, 0, cubeSize / 2);
+            sceneObjects.Add(bottomWall);
+
+            Mesh leftWall = new Mesh(wallVertices, wallNormals, wallColors, wallIndices, PrimitiveType.Triangles);
+            leftWall.ModelMatrix = Matrix4.CreateRotationZ(halfpi) * Matrix4.CreateScale(cubeSize, cubeSize, cubeSize) * Matrix4.CreateTranslation(cubeSize / 2, cubeSize / 2, cubeSize / 2);
+            sceneObjects.Add(leftWall);
+
+            Mesh rightWall = new Mesh(wallVertices, wallNormals, wallColors, wallIndices, PrimitiveType.Triangles);
+            rightWall.ModelMatrix = Matrix4.CreateRotationZ(-halfpi) * Matrix4.CreateScale(cubeSize, cubeSize, cubeSize) * Matrix4.CreateTranslation(-cubeSize / 2, cubeSize / 2, cubeSize / 2);
+            sceneObjects.Add(rightWall);
+
+            Mesh topWall = new Mesh(wallVertices, wallNormals, wallColors, wallIndices, PrimitiveType.Triangles);
+            topWall.ModelMatrix = Matrix4.CreateRotationX(2 *halfpi) * Matrix4.CreateScale(cubeSize, cubeSize, cubeSize) * Matrix4.CreateTranslation(0, cubeSize, cubeSize / 2);
+            sceneObjects.Add(topWall);
+
+            Mesh backWall = new Mesh(wallVertices, wallNormals, wallColors, wallIndices, PrimitiveType.Triangles);
+            backWall.ModelMatrix = Matrix4.CreateRotationX(-halfpi) * Matrix4.CreateScale(cubeSize, cubeSize, cubeSize) * Matrix4.CreateTranslation(0, cubeSize / 2, cubeSize);
+            sceneObjects.Add(backWall);
 
             ambientColor = new Vector3(0.1f, 0.1f, 0.1f);
 
@@ -144,7 +164,8 @@ namespace PolygonalLightShading
             ltcShader.Dispose();
             imGuiController.Dispose();
             
-            quad.Dispose();
+            foreach(var mesh in sceneObjects)
+                mesh.Dispose();
             GL.DeleteTexture(ltc_mat);
             GL.DeleteTexture(ltc_mag);
         }
@@ -192,7 +213,6 @@ namespace PolygonalLightShading
             ltcShader.LoadInteger("twoSided", twoSided ? 1 : 0);
             ltcShader.LoadMatrix4("view", camera.GetViewMatrix());
             ltcShader.LoadMatrix4("proj", camera.GetProjectionMatrix());
-            ltcShader.LoadMatrix4("model", Matrix4.Identity);
             ltcShader.LoadFloat3("cameraPosition", camera.Position);
             ltcShader.LoadFloat3("ambient", ambientColor);
 
@@ -207,7 +227,12 @@ namespace PolygonalLightShading
             GL.BindTexture(TextureTarget.Texture2D, ltc_mag);
             ltcShader.LoadInteger("ltc_mag", 1);
             
-            quad.Render();
+            foreach(var mesh in sceneObjects)
+            {
+                ltcShader.LoadMatrix4("model", mesh.ModelMatrix);
+                mesh.Render();
+            }
+                
 
             RenderGui();
 
