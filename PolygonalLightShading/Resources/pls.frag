@@ -9,10 +9,6 @@ uniform float roughness;
 uniform vec3  dcolor;
 uniform vec3  scolor;
 
-uniform float intensity;
-
-uniform bool twoSided;
-
 uniform sampler2D ltc_mat;
 uniform sampler2D ltc_mag;
 
@@ -23,6 +19,8 @@ const int MAX_QUAD_LIGHTS = 16;
 
 uniform vec3 lightVertices[4 * MAX_QUAD_LIGHTS];
 uniform vec3 lightColors[MAX_QUAD_LIGHTS];
+uniform float lightIntensity[MAX_QUAD_LIGHTS];
+uniform bool lightTwoSided[MAX_QUAD_LIGHTS];
 uniform int activeLightCount;
 
 const float LUT_SIZE  = 64.0;
@@ -241,7 +239,6 @@ vec3 ToSRGB(vec3 v)   { return PowVec3(v, 1.0/gamma); }
 
 void main()
 {
-    vec3 lcol = vec3(intensity);
     vec3 dcol = ToLinear(dcolor);
     vec3 scol = ToLinear(scolor);
    
@@ -267,6 +264,7 @@ void main()
     int lightCount = min(activeLightCount, MAX_QUAD_LIGHTS);
     for(int i = 0; i < lightCount; i++)
     {
+        vec3 lcol = vec3(lightIntensity[i]);
         vec3 lightCoords[4];
         for(int j = 0; j < 4; j++)
         {
@@ -274,10 +272,10 @@ void main()
             lightCoords[3 - j] = lightVertices[4*i + j];
         }
 
-        vec3 spec = LTC_Evaluate(N, V, pos, Minv, lightCoords, twoSided);
+        vec3 spec = LTC_Evaluate(N, V, pos, Minv, lightCoords, lightTwoSided[i]);
         spec *= texture2D(ltc_mag, uv).w;
 
-        vec3 diff = LTC_Evaluate(N, V, pos, mat3(1), lightCoords, twoSided);
+        vec3 diff = LTC_Evaluate(N, V, pos, mat3(1), lightCoords, lightTwoSided[i]);
 
         vec3 col = vec3(0);
         col  = lcol*(scol*spec + dcol*diff);

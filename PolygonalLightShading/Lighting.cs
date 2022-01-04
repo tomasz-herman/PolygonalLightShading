@@ -57,6 +57,16 @@ namespace PolygonalLightShading
             return data.ToArray();
         }
 
+        public float[] GetIntensityData()
+        {
+            return lights.Select(l => l.Intensity).ToArray();
+        }
+
+        public int[] GetTwoSidedData()
+        {
+            return lights.Select(l => l.TwoSided ? 1 : 0).ToArray();
+        }
+
         public int Count() { return lights.Count; }
     }
 }

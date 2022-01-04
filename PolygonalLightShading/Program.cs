@@ -231,6 +231,8 @@ namespace PolygonalLightShading
 
             ltcShader.LoadFloat3("lightVertices", lighting.GetVertexData());
             ltcShader.LoadFloat3("lightColors", lighting.GetColorData());
+            ltcShader.LoadFloat("lightIntensity", lighting.GetIntensityData());
+            ltcShader.LoadInt("lightTwoSided", lighting.GetTwoSidedData());
             ltcShader.LoadInteger("activeLightCount", lighting.Count());
             
             GL.ActiveTexture(TextureUnit.Texture0);

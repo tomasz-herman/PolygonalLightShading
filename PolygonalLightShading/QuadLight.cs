@@ -24,6 +24,8 @@ namespace PolygonalLightShading
         public Mesh FrontMesh { get; private set; }
         public Mesh BackMesh { get; private set; }
         public Vector3 Color { get; set; } = new Vector3(1, 1, 1);
+        public float Intensity { get; set; } = 1f;
+        public bool TwoSided { get; set; } = false;
 
         public QuadLight(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4)
         {
