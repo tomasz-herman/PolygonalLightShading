@@ -25,12 +25,6 @@ namespace PolygonalLightShading
         private float roughness = 0.25f;
         private System.Numerics.Vector3 dcolor = new (1);
         private System.Numerics.Vector3 scolor = new (1);
-        private float intensity = 4;
-        private float width = 8;
-        private float height = 8;
-        private float roty = 0;
-        private float rotz = 0;
-        private bool twoSided = false;
 
         private bool loaded = false;
 
@@ -39,6 +33,7 @@ namespace PolygonalLightShading
         private Vector3 ambientColor;
         private Vector3 lightOffColor = new Vector3(0, 0, 0);
         private Lighting lighting;
+        private float defaultLightIntensity = 4f;
 
         public static void Main(string[] args)
         {
@@ -125,7 +120,7 @@ namespace PolygonalLightShading
                 new Vector3(0.5f, 0.5f, 0),
                 new Vector3(0.5f, -0.5f, 0)
             );
-            light1.ModelMatrix = Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(0, 6, 32);
+            light1.ModelMatrix = Matrix4.CreateRotationY(1) * Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(10, 6, 25);
             light1.Color = new Vector3(1, 0, 0);
             lighting.Add(light1);
 
@@ -135,7 +130,7 @@ namespace PolygonalLightShading
                 new Vector3(0.5f, 0.5f, 0),
                 new Vector3(0.5f, -0.5f, 0)
             );
-            light2.ModelMatrix = Matrix4.CreateRotationY(1) * Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(10, 6, 25);
+            light2.ModelMatrix = Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(0, 6, 32);
             light2.Color = new Vector3(0, 1, 0);
             lighting.Add(light2);
 
@@ -148,6 +143,9 @@ namespace PolygonalLightShading
             light3.ModelMatrix = Matrix4.CreateRotationY(-1) * Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(-10, 6, 25);
             light3.Color = new Vector3(0, 0, 1);
             lighting.Add(light3);
+
+            foreach (var light in lighting)
+                light.Intensity = defaultLightIntensity;
 
             // load textures
             ltc_mat = GL.GenTexture();
@@ -222,8 +220,6 @@ namespace PolygonalLightShading
             ltcShader.LoadFloat("roughness", roughness);
             ltcShader.LoadFloat3("dcolor", new Vector3(dcolor.X, dcolor.Y, dcolor.Z));
             ltcShader.LoadFloat3("scolor", new Vector3(scolor.X, scolor.Y, scolor.Z));
-            ltcShader.LoadFloat("intensity", intensity);
-            ltcShader.LoadInteger("twoSided", twoSided ? 1 : 0);
             ltcShader.LoadMatrix4("view", camera.GetViewMatrix());
             ltcShader.LoadMatrix4("proj", camera.GetProjectionMatrix());
             ltcShader.LoadFloat3("cameraPosition", camera.Position);
@@ -250,19 +246,19 @@ namespace PolygonalLightShading
             }
 
             lightShader.Use();
-            lightShader.LoadFloat("intensity", intensity);
             lightShader.LoadMatrix4("view", camera.GetViewMatrix());
             lightShader.LoadMatrix4("proj", camera.GetProjectionMatrix());
             lightShader.LoadFloat3("ambient", ambientColor);
 
             foreach (var light in lighting)
             {
+                lightShader.LoadFloat("intensity", light.Intensity);
                 lightShader.LoadMatrix4("model", light.ModelMatrix);
                 lightShader.LoadFloat3("lightColor", light.Color);
 
                 light.FrontMesh.Render();
 
-                if (!twoSided)
+                if (!light.TwoSided)
                     lightShader.LoadFloat3("lightColor", lightOffColor);
 
                 light.BackMesh.Render();
@@ -277,15 +273,25 @@ namespace PolygonalLightShading
         private void RenderGui()
         {
             ImGui.Begin("Options");
-            ImGui.SliderFloat("Roughness", ref roughness, 0.00f, 1f);
-            ImGui.ColorPicker3("Diffuse Color", ref dcolor);
-            ImGui.ColorPicker3("Specular Color", ref scolor);
-            ImGui.SliderFloat("Light Intensity", ref intensity, 0.01f, 10f);
-            ImGui.SliderFloat("Width", ref width, 0.1f, 15f);
-            ImGui.SliderFloat("Height", ref height, 0.1f, 15f);
-            ImGui.SliderFloat("Rotation Y", ref roty, 0f, 1f);
-            ImGui.SliderFloat("Rotation Z", ref rotz, 0f, 1f);
-            ImGui.Checkbox("Two-sided", ref twoSided);
+            if(ImGui.CollapsingHeader("Material"))
+            {
+                ImGui.SliderFloat("Roughness", ref roughness, 0.00f, 1f);
+                ImGui.ColorPicker3("Diffuse Color", ref dcolor);
+                ImGui.ColorPicker3("Specular Color", ref scolor);
+            }
+            for(int i = 0; i < lighting.Count(); i++)
+            {
+                if(ImGui.CollapsingHeader($"Light {i+1}"))
+                {
+                    var light = lighting[i];
+                    float intensity = light.Intensity;
+                    ImGui.SliderFloat("Intensity", ref intensity, 0.01f, 10f);
+                    light.Intensity = intensity;
+                    bool twoSided = light.TwoSided;
+                    ImGui.Checkbox("Two-sided", ref twoSided);
+                    light.TwoSided = twoSided;
+                }
+            }
             ImGui.End();
             
             imGuiController.Render();

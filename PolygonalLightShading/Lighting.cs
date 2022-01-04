@@ -27,6 +27,12 @@ namespace PolygonalLightShading
             return GetEnumerator();
         }
 
+        public QuadLight this[int index]
+        {
+            get { return lights[index]; }
+        }
+
+
         public float[] GetVertexData()
         {
             var data = new List<float>();
