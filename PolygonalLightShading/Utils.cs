@@ -19,5 +19,15 @@ namespace PolygonalLightShading
                 .Select(line => float.Parse(line, CultureInfo.InvariantCulture))
                 .ToArray();
         }
+
+        public static float ParseFloat(string text)
+        {
+            return float.Parse(text, CultureInfo.InvariantCulture);
+        }
+
+        public static Stream LoadResourceStream(string file)
+        {
+            return Assembly.GetExecutingAssembly().GetManifestResourceStream($"PolygonalLightShading.Resources.{file}");
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Dear_ImGui_Sample;
 using ImGuiNET;
 using OpenTK.Graphics.OpenGL4;
@@ -91,20 +92,28 @@ namespace PolygonalLightShading
             sceneObjects.Add(bottomWall);
 
             Mesh leftWall = new Mesh(wallVertices, wallNormals, wallColors, wallIndices, PrimitiveType.Triangles);
-            leftWall.ModelMatrix = Matrix4.CreateRotationZ(halfpi) * Matrix4.CreateScale(cubeSize, cubeSize, cubeSize) * Matrix4.CreateTranslation(cubeSize / 2, cubeSize / 2, cubeSize / 2);
+            leftWall.ModelMatrix = Matrix4.CreateRotationZ(halfpi) * Matrix4.CreateScale(cubeSize) * Matrix4.CreateTranslation(cubeSize / 2, cubeSize / 2, cubeSize / 2);
             sceneObjects.Add(leftWall);
 
             Mesh rightWall = new Mesh(wallVertices, wallNormals, wallColors, wallIndices, PrimitiveType.Triangles);
-            rightWall.ModelMatrix = Matrix4.CreateRotationZ(-halfpi) * Matrix4.CreateScale(cubeSize, cubeSize, cubeSize) * Matrix4.CreateTranslation(-cubeSize / 2, cubeSize / 2, cubeSize / 2);
+            rightWall.ModelMatrix = Matrix4.CreateRotationZ(-halfpi) * Matrix4.CreateScale(cubeSize) * Matrix4.CreateTranslation(-cubeSize / 2, cubeSize / 2, cubeSize / 2);
             sceneObjects.Add(rightWall);
 
             Mesh topWall = new Mesh(wallVertices, wallNormals, wallColors, wallIndices, PrimitiveType.Triangles);
-            topWall.ModelMatrix = Matrix4.CreateRotationX(2 *halfpi) * Matrix4.CreateScale(cubeSize, cubeSize, cubeSize) * Matrix4.CreateTranslation(0, cubeSize, cubeSize / 2);
+            topWall.ModelMatrix = Matrix4.CreateRotationX(2 *halfpi) * Matrix4.CreateScale(cubeSize) * Matrix4.CreateTranslation(0, cubeSize, cubeSize / 2);
             sceneObjects.Add(topWall);
 
             Mesh backWall = new Mesh(wallVertices, wallNormals, wallColors, wallIndices, PrimitiveType.Triangles);
-            backWall.ModelMatrix = Matrix4.CreateRotationX(-halfpi) * Matrix4.CreateScale(cubeSize, cubeSize, cubeSize) * Matrix4.CreateTranslation(0, cubeSize / 2, cubeSize);
+            backWall.ModelMatrix = Matrix4.CreateRotationX(-halfpi) * Matrix4.CreateScale(cubeSize) * Matrix4.CreateTranslation(0, cubeSize / 2, cubeSize);
             sceneObjects.Add(backWall);
+
+            float duckScale = 0.05f;
+            Vector3 duckPosition = new Vector3(0, 0, cubeSize / 2);
+            string duckFile = "duck.txt";
+            Vector4 duckColor = new Vector4(1f, 1f, 1f, 1f);
+            Mesh duckMesh = DuckLoader.Load(Utils.LoadResourceStream(duckFile), duckColor);
+            duckMesh.ModelMatrix = Matrix4.CreateScale(duckScale) * Matrix4.CreateTranslation(duckPosition);
+            sceneObjects.Add(duckMesh);
 
             ambientColor = new Vector3(0.1f, 0.1f, 0.1f);
 
