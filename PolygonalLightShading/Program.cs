@@ -290,6 +290,9 @@ namespace PolygonalLightShading
                     bool twoSided = light.TwoSided;
                     ImGui.Checkbox("Two-sided", ref twoSided);
                     light.TwoSided = twoSided;
+                    System.Numerics.Vector3 color = new System.Numerics.Vector3(light.Color.X, light.Color.Y, light.Color.Z);
+                    ImGui.ColorPicker3("Color", ref color);
+                    light.Color = new Vector3(color.X, color.Y, color.Z);
                 }
             }
             ImGui.End();
