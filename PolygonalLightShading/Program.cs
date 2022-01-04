@@ -16,7 +16,7 @@ namespace PolygonalLightShading
     public class Program : GameWindow
     {
         private ImGuiController imGuiController;
-        private Shader ltcShader;
+        private Shader ltcShader, lightShader;
         private Camera camera;
 
         private int ltc_mat;
@@ -55,6 +55,7 @@ namespace PolygonalLightShading
             base.OnLoad();
 
             ltcShader = new Shader(("pls.vert", ShaderType.VertexShader), ("pls.frag", ShaderType.FragmentShader));
+            lightShader = new Shader(("light.vert", ShaderType.VertexShader), ("light.frag", ShaderType.FragmentShader));
             camera = new PerspectiveCamera();
             camera.UpdateVectors();
             imGuiController = new ImGuiController(Size.X, Size.Y);
@@ -125,7 +126,8 @@ namespace PolygonalLightShading
                 new Vector3(0.5f, 0.5f, 0),
                 new Vector3(-0.5f, 0.5f, 0)
             );
-            light1.modelMatrix = Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(0, 6, 32);
+            light1.ModelMatrix = Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(0, 6, 32);
+            light1.Color = new Vector3(1, 0, 0);
             lighting.Add(light1);
 
             var light2 = new QuadLight(
@@ -134,7 +136,8 @@ namespace PolygonalLightShading
                 new Vector3(0.5f, 0.5f, 0),
                 new Vector3(-0.5f, 0.5f, 0)
             );
-            light2.modelMatrix = Matrix4.CreateRotationY(1) * Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(10, 6, 25);
+            light2.ModelMatrix = Matrix4.CreateRotationY(1) * Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(10, 6, 25);
+            light2.Color = new Vector3(0, 1, 0);
             lighting.Add(light2);
 
             var light3 = new QuadLight(
@@ -143,7 +146,8 @@ namespace PolygonalLightShading
                 new Vector3(0.5f, 0.5f, 0),
                 new Vector3(-0.5f, 0.5f, 0)
             );
-            light3.modelMatrix = Matrix4.CreateRotationY(-1) * Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(-10, 6, 25);
+            light3.ModelMatrix = Matrix4.CreateRotationY(-1) * Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(-10, 6, 25);
+            light3.Color = new Vector3(0, 0, 1);
             lighting.Add(light3);
 
             // load textures
@@ -171,6 +175,7 @@ namespace PolygonalLightShading
             base.OnUnload();
 
             ltcShader.Dispose();
+            lightShader.Dispose();
             imGuiController.Dispose();
             
             foreach(var mesh in sceneObjects)
@@ -241,7 +246,25 @@ namespace PolygonalLightShading
                 ltcShader.LoadMatrix4("model", mesh.ModelMatrix);
                 mesh.Render();
             }
-                
+
+            lightShader.Use();
+            lightShader.LoadFloat("intensity", intensity);
+            lightShader.LoadMatrix4("view", camera.GetViewMatrix());
+            lightShader.LoadMatrix4("proj", camera.GetProjectionMatrix());
+            lightShader.LoadFloat3("cameraPosition", camera.Position);
+
+            lightShader.LoadFloat3("lightVertices", lighting.GetVertexData());
+            lightShader.LoadInteger("activeLightCount", lighting.Count());
+            lightShader.LoadFloat3("ambient", ambientColor);
+
+            foreach (var light in lighting)
+            {
+                Mesh mesh = light.Mesh;
+                lightShader.LoadMatrix4("model", mesh.ModelMatrix);
+                lightShader.LoadFloat3("lightColor", light.Color);
+                mesh.Render();
+            }
+
 
             RenderGui();
 
