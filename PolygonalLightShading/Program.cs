@@ -120,7 +120,9 @@ namespace PolygonalLightShading
                 new Vector3(0.5f, 0.5f, 0),
                 new Vector3(0.5f, -0.5f, 0)
             );
-            light1.ModelMatrix = Matrix4.CreateRotationY(1) * Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(10, 6, 25);
+            light1.Scale = 10;
+            light1.Rotation.Y = 45;
+            light1.Position = new Vector3(10, 6, 25);
             light1.Color = new Vector3(1, 0, 0);
             lighting.Add(light1);
 
@@ -130,7 +132,8 @@ namespace PolygonalLightShading
                 new Vector3(0.5f, 0.5f, 0),
                 new Vector3(0.5f, -0.5f, 0)
             );
-            light2.ModelMatrix = Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(0, 6, 32);
+            light2.Scale = 10;
+            light2.Position = new Vector3(0, 6, 30);
             light2.Color = new Vector3(0, 1, 0);
             lighting.Add(light2);
 
@@ -140,7 +143,9 @@ namespace PolygonalLightShading
                 new Vector3(0.5f, 0.5f, 0),
                 new Vector3(0.5f, -0.5f, 0)
             );
-            light3.ModelMatrix = Matrix4.CreateRotationY(-1) * Matrix4.CreateScale(10, 10, 10) * Matrix4.CreateTranslation(-10, 6, 25);
+            light3.Scale = 10;
+            light3.Rotation.Y = 315;
+            light3.Position = new Vector3(-10, 6, 25);
             light3.Color = new Vector3(0, 0, 1);
             lighting.Add(light3);
 
@@ -284,13 +289,19 @@ namespace PolygonalLightShading
                 if(ImGui.CollapsingHeader($"Light {i+1}"))
                 {
                     var light = lighting[i];
-                    float intensity = light.Intensity;
-                    ImGui.SliderFloat("Intensity", ref intensity, 0.01f, 10f);
-                    light.Intensity = intensity;
-                    bool twoSided = light.TwoSided;
-                    ImGui.Checkbox("Two-sided", ref twoSided);
-                    light.TwoSided = twoSided;
-                    System.Numerics.Vector3 color = new System.Numerics.Vector3(light.Color.X, light.Color.Y, light.Color.Z);
+
+                    var position = new System.Numerics.Vector3(light.Position.X, light.Position.Y, light.Position.Z);
+                    ImGui.SliderFloat3("Position", ref position, 0, 40);
+                    light.Position = new Vector3(position.X, position.Y, position.Z);
+
+                    var rotation = new System.Numerics.Vector3(light.Rotation.X, light.Rotation.Y, light.Rotation.Z);
+                    ImGui.SliderFloat3("Rotation", ref rotation, 0, 360);
+                    light.Rotation = new Vector3(rotation.X, rotation.Y, rotation.Z);
+
+                    ImGui.SliderFloat("Intensity", ref light.Intensity, 0.01f, 10f);
+                    ImGui.Checkbox("Two-sided", ref light.TwoSided);
+
+                    var color = new System.Numerics.Vector3(light.Color.X, light.Color.Y, light.Color.Z);
                     ImGui.ColorPicker3("Color", ref color);
                     light.Color = new Vector3(color.X, color.Y, color.Z);
                 }

@@ -10,22 +10,19 @@ namespace PolygonalLightShading
     public class QuadLight
     {
         private readonly Vector3[] vertices  = new Vector3[4];
-        private Matrix4 modelMatrix = Matrix4.Identity;
         public Matrix4 ModelMatrix
         { 
-            get { return modelMatrix; }
-            set
-            { 
-                modelMatrix = value; 
-                FrontMesh.ModelMatrix = value; 
-                BackMesh.ModelMatrix = value; 
-            } 
+            get { return Matrix4.CreateRotationZ(Utils.DegToRad(Rotation.X)) * Matrix4.CreateRotationY(Utils.DegToRad(Rotation.Y)) *
+                    Matrix4.CreateRotationX(Utils.DegToRad(Rotation.Z)) * Matrix4.CreateScale(Scale) * Matrix4.CreateTranslation(Position); }
         }
         public Mesh FrontMesh { get; private set; }
         public Mesh BackMesh { get; private set; }
         public Vector3 Color { get; set; } = new Vector3(1, 1, 1);
-        public float Intensity { get; set; } = 1f;
-        public bool TwoSided { get; set; } = false;
+        public float Intensity = 1f;
+        public bool TwoSided = false;
+        public Vector3 Position = new Vector3(0, 0, 0);
+        public Vector3 Rotation = new Vector3(0, 0, 0);
+        public float Scale = 1;
 
         public QuadLight(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4)
         {

@@ -29,5 +29,9 @@ namespace PolygonalLightShading
         {
             return Assembly.GetExecutingAssembly().GetManifestResourceStream($"PolygonalLightShading.Resources.{file}");
         }
+
+        private static readonly float pi = (float)Math.PI;
+
+        public static float DegToRad(float deg) { return deg * pi / 180f; }
     }
 }
