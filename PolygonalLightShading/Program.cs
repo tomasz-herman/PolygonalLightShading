@@ -253,7 +253,6 @@ namespace PolygonalLightShading
             lightShader.Use();
             lightShader.LoadMatrix4("view", camera.GetViewMatrix());
             lightShader.LoadMatrix4("proj", camera.GetProjectionMatrix());
-            lightShader.LoadFloat3("ambient", ambientColor);
 
             foreach (var light in lighting)
             {
@@ -290,15 +289,13 @@ namespace PolygonalLightShading
                 {
                     var light = lighting[i];
 
-                    var position = new System.Numerics.Vector3(light.Position.X, light.Position.Y, light.Position.Z);
-                    ImGui.SliderFloat3("Position", ref position, 0, 40);
-                    light.Position = new Vector3(position.X, position.Y, position.Z);
-
-                    var rotation = new System.Numerics.Vector3(light.Rotation.X, light.Rotation.Y, light.Rotation.Z);
-                    ImGui.SliderFloat3("Rotation", ref rotation, 0, 360);
-                    light.Rotation = new Vector3(rotation.X, rotation.Y, rotation.Z);
-
-                    ImGui.SliderFloat("Intensity", ref light.Intensity, 0.01f, 10f);
+                    ImGui.SliderFloat("Position X", ref light.Position.X, -20f, 20f);
+                    ImGui.SliderFloat("Position Y", ref light.Position.Y, 0f, 40f);
+                    ImGui.SliderFloat("Position Z", ref light.Position.Z, 0f, 40f);
+                    ImGui.SliderFloat("Rotation X", ref light.Rotation.X, 0f, 360f);
+                    ImGui.SliderFloat("Rotation Y", ref light.Rotation.Y, 0f, 360f);
+                    ImGui.SliderFloat("Rotation Z", ref light.Rotation.Z, 0f, 360f);
+                    ImGui.SliderFloat("Intensity", ref light.Intensity, 0f, 10f);
                     ImGui.Checkbox("Two-sided", ref light.TwoSided);
 
                     var color = new System.Numerics.Vector3(light.Color.X, light.Color.Y, light.Color.Z);
