@@ -67,11 +67,22 @@ namespace PolygonalLightShading
 
             // load quad
             float planeY = 0.0f;
-            quad = new Mesh(new[] { 
+            float planeBrightness = 0.2f;
+            quad = new Mesh(new float[] { 
                 -20.0f, planeY, 0.0f, 
                  20.0f, planeY, 0.0f, 
                 -20.0f, planeY, 50.0f, 
-                 20.0f, planeY, 50.0f }, 
+                 20.0f, planeY, 50.0f },
+                 new float[]{
+                     0, 1, 0,
+                     0, 1, 0,
+                     0, 1, 0,
+                     0, 1, 0,},
+                 new float[] {
+                 planeBrightness, planeBrightness, planeBrightness, 1,
+                 planeBrightness, planeBrightness, planeBrightness, 1,
+                 planeBrightness, planeBrightness, planeBrightness, 1,
+                 planeBrightness, planeBrightness, planeBrightness, 1,},
                 new[] { 0, 1, 2, 2, 1, 3 }, 
                 PrimitiveType.Triangles);
 

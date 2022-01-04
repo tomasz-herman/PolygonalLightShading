@@ -13,35 +13,19 @@ namespace PolygonalLightShading
         public PrimitiveType Type { get; }
         public int Count { get; }
 
-        public Mesh(float[] positions, int[] indices, PrimitiveType type)
+        public Mesh(float[] positions, float[] normals, float[] colors, int[] indices, PrimitiveType type)
         {
             Type = type;
             Count = indices.Length;
-            Load(positions, indices);
+            Load(positions, normals, colors, indices);
         }
 
-        public void Load(float[] positions, int[] indices) {
+        public void Load(float[] positions, float[] normals, float[] colors, int[] indices) {
             Vao = GL.GenVertexArray();
             GL.BindVertexArray(Vao);
             LoadData(positions, 0, 3);
-            //TODO load normals and colors properly
-            Random rnd = new Random(3334);
-            var normals = new List<float>();
-            var colors = new List<float>();
-            int vCount = positions.Length / 3;
-            for(int i = 0; i < vCount; i++)
-            {
-                normals.Add(0);
-                normals.Add(1);
-                normals.Add(0);
-
-                colors.Add(0.2f + 0.8f * (float)rnd.NextDouble());
-                colors.Add(0.2f + 0.8f * (float)rnd.NextDouble());
-                colors.Add(0.2f + 0.8f * (float)rnd.NextDouble());
-                colors.Add(1);
-            }
-            LoadData(normals.ToArray(), 1, 3);
-            LoadData(colors.ToArray(), 2, 4);
+            LoadData(normals, 1, 3);
+            LoadData(colors, 2, 4);
 
             LoadIndices(indices);
             GL.BindVertexArray(0);
