@@ -34,6 +34,7 @@ namespace PolygonalLightShading
         private Vector3 lightOffColor = new Vector3(0, 0, 0);
         private Lighting lighting;
         private float defaultLightIntensity = 4f;
+        private Texture beer, flag, landscape;
 
         public static void Main(string[] args)
         {
@@ -54,6 +55,9 @@ namespace PolygonalLightShading
             camera = new PerspectiveCamera();
             camera.UpdateVectors();
             imGuiController = new ImGuiController(Size.X, Size.Y);
+            landscape = new Texture("landscape.png");
+            beer = new Texture("beer.png");
+            flag = new Texture("flag.png");
 
             loaded = true;
 
@@ -82,23 +86,23 @@ namespace PolygonalLightShading
 
             float cubeSize = 40;
             float halfpi = (float)Math.PI / 2f;
-            Mesh bottomWall = new Mesh(wallVertices, wallNormals, wallColors, wallIndices, PrimitiveType.Triangles);
+            Mesh bottomWall = new Mesh(wallVertices, wallNormals, wallColors, null, wallIndices, PrimitiveType.Triangles);
             bottomWall.ModelMatrix = Matrix4.CreateScale(cubeSize, cubeSize, cubeSize) * Matrix4.CreateTranslation(0, 0, cubeSize / 2);
             sceneObjects.Add(bottomWall);
 
-            Mesh leftWall = new Mesh(wallVertices, wallNormals, wallColors, wallIndices, PrimitiveType.Triangles);
+            Mesh leftWall = new Mesh(wallVertices, wallNormals, wallColors, null, wallIndices, PrimitiveType.Triangles);
             leftWall.ModelMatrix = Matrix4.CreateRotationZ(halfpi) * Matrix4.CreateScale(cubeSize) * Matrix4.CreateTranslation(cubeSize / 2, cubeSize / 2, cubeSize / 2);
             sceneObjects.Add(leftWall);
 
-            Mesh rightWall = new Mesh(wallVertices, wallNormals, wallColors, wallIndices, PrimitiveType.Triangles);
+            Mesh rightWall = new Mesh(wallVertices, wallNormals, wallColors, null, wallIndices, PrimitiveType.Triangles);
             rightWall.ModelMatrix = Matrix4.CreateRotationZ(-halfpi) * Matrix4.CreateScale(cubeSize) * Matrix4.CreateTranslation(-cubeSize / 2, cubeSize / 2, cubeSize / 2);
             sceneObjects.Add(rightWall);
 
-            Mesh topWall = new Mesh(wallVertices, wallNormals, wallColors, wallIndices, PrimitiveType.Triangles);
+            Mesh topWall = new Mesh(wallVertices, wallNormals, wallColors, null, wallIndices, PrimitiveType.Triangles);
             topWall.ModelMatrix = Matrix4.CreateRotationX(2 *halfpi) * Matrix4.CreateScale(cubeSize) * Matrix4.CreateTranslation(0, cubeSize, cubeSize / 2);
             sceneObjects.Add(topWall);
 
-            Mesh backWall = new Mesh(wallVertices, wallNormals, wallColors, wallIndices, PrimitiveType.Triangles);
+            Mesh backWall = new Mesh(wallVertices, wallNormals, wallColors, null, wallIndices, PrimitiveType.Triangles);
             backWall.ModelMatrix = Matrix4.CreateRotationX(-halfpi) * Matrix4.CreateScale(cubeSize) * Matrix4.CreateTranslation(0, cubeSize / 2, cubeSize);
             sceneObjects.Add(backWall);
 
@@ -124,6 +128,7 @@ namespace PolygonalLightShading
             light1.Rotation.Y = 45;
             light1.Position = new Vector3(10, 6, 25);
             light1.Color = new Vector3(1, 0, 0);
+            light1.Texture = landscape;
             lighting.Add(light1);
 
             var light2 = new QuadLight(
@@ -135,6 +140,7 @@ namespace PolygonalLightShading
             light2.Scale = 10;
             light2.Position = new Vector3(0, 6, 30);
             light2.Color = new Vector3(0, 1, 0);
+            light2.Texture = flag;
             lighting.Add(light2);
 
             var light3 = new QuadLight(
@@ -147,6 +153,7 @@ namespace PolygonalLightShading
             light3.Rotation.Y = 315;
             light3.Position = new Vector3(-10, 6, 25);
             light3.Color = new Vector3(0, 0, 1);
+            light3.Texture = beer;
             lighting.Add(light3);
 
             foreach (var light in lighting)
@@ -182,6 +189,11 @@ namespace PolygonalLightShading
             
             foreach(var mesh in sceneObjects)
                 mesh.Dispose();
+            
+            landscape.Dispose();
+            flag.Dispose();
+            beer.Dispose();
+            
             GL.DeleteTexture(ltc_mat);
             GL.DeleteTexture(ltc_mag);
         }
@@ -234,15 +246,17 @@ namespace PolygonalLightShading
             ltcShader.LoadFloat3("lightColors", lighting.GetColorData());
             ltcShader.LoadFloat("lightIntensity", lighting.GetIntensityData());
             ltcShader.LoadInt("lightTwoSided", lighting.GetTwoSidedData());
+            ltcShader.LoadInt("lightTexture", lighting.GetTexturesData());
+            ltcShader.LoadInt("useTexture", lighting.GetTexturesUsageData());
             ltcShader.LoadInteger("activeLightCount", lighting.Count());
             
-            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.ActiveTexture(TextureUnit.Texture31);
             GL.BindTexture(TextureTarget.Texture2D, ltc_mat);
-            ltcShader.LoadInteger("ltc_mat", 0);
+            ltcShader.LoadInteger("ltc_mat", 31);
             
-            GL.ActiveTexture(TextureUnit.Texture1);
+            GL.ActiveTexture(TextureUnit.Texture30);
             GL.BindTexture(TextureTarget.Texture2D, ltc_mag);
-            ltcShader.LoadInteger("ltc_mag", 1);
+            ltcShader.LoadInteger("ltc_mag", 30);
             
             foreach(var mesh in sceneObjects)
             {
@@ -254,20 +268,26 @@ namespace PolygonalLightShading
             lightShader.LoadMatrix4("view", camera.GetViewMatrix());
             lightShader.LoadMatrix4("proj", camera.GetProjectionMatrix());
 
-            foreach (var light in lighting)
+            for (int i = 0; i < lighting.Count(); i++)
             {
+                var light = lighting[i];
                 lightShader.LoadFloat("intensity", light.Intensity);
                 lightShader.LoadMatrix4("model", light.ModelMatrix);
                 lightShader.LoadFloat3("lightColor", light.Color);
+                lightShader.LoadInt("useTexture", new[] {light.UseTexture ? 1 : 0});
+                light.Texture.Use(TextureUnit.Texture0 + i);
+                lightShader.LoadInt("tex", new[] {i});
 
                 light.FrontMesh.Render();
 
                 if (!light.TwoSided)
+                {
+                    lightShader.LoadInt("useTexture", new[] {0});
                     lightShader.LoadFloat3("lightColor", lightOffColor);
+                }
 
                 light.BackMesh.Render();
             }
-
 
             RenderGui();
 
@@ -289,17 +309,18 @@ namespace PolygonalLightShading
                 {
                     var light = lighting[i];
 
-                    ImGui.SliderFloat("Position X", ref light.Position.X, -20f, 20f);
-                    ImGui.SliderFloat("Position Y", ref light.Position.Y, 0f, 40f);
-                    ImGui.SliderFloat("Position Z", ref light.Position.Z, 0f, 40f);
-                    ImGui.SliderFloat("Rotation X", ref light.Rotation.X, 0f, 360f);
-                    ImGui.SliderFloat("Rotation Y", ref light.Rotation.Y, 0f, 360f);
-                    ImGui.SliderFloat("Rotation Z", ref light.Rotation.Z, 0f, 360f);
-                    ImGui.SliderFloat("Intensity", ref light.Intensity, 0f, 10f);
-                    ImGui.Checkbox("Two-sided", ref light.TwoSided);
+                    ImGui.SliderFloat($"Position X {i+1}", ref light.Position.X, -20f, 20f);
+                    ImGui.SliderFloat($"Position Y {i+1}", ref light.Position.Y, 0f, 40f);
+                    ImGui.SliderFloat($"Position Z {i+1}", ref light.Position.Z, 0f, 40f);
+                    ImGui.SliderFloat($"Rotation X {i+1}", ref light.Rotation.X, 0f, 360f);
+                    ImGui.SliderFloat($"Rotation Y {i+1}", ref light.Rotation.Y, 0f, 360f);
+                    ImGui.SliderFloat($"Rotation Z {i+1}", ref light.Rotation.Z, 0f, 360f);
+                    ImGui.SliderFloat($"Intensity {i+1}", ref light.Intensity, 0f, 10f);
+                    ImGui.Checkbox($"Two-sided {i+1}", ref light.TwoSided);
+                    ImGui.Checkbox($"Use Texture {i+1}", ref light.UseTexture);
 
                     var color = new System.Numerics.Vector3(light.Color.X, light.Color.Y, light.Color.Z);
-                    ImGui.ColorPicker3("Color", ref color);
+                    ImGui.ColorPicker3($"Color {i+1}", ref color);
                     light.Color = new Vector3(color.X, color.Y, color.Z);
                 }
             }

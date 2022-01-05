@@ -15,19 +15,20 @@ namespace PolygonalLightShading
         public int Count { get; }
         public Matrix4 ModelMatrix { get; set; } = Matrix4.Identity;
 
-        public Mesh(float[] positions, float[] normals, float[] colors, int[] indices, PrimitiveType type)
+        public Mesh(float[] positions, float[] normals, float[] colors, float[] textures, int[] indices, PrimitiveType type)
         {
             Type = type;
             Count = indices.Length;
-            Load(positions, normals, colors, indices);
+            Load(positions, normals, colors, textures, indices);
         }
 
-        public void Load(float[] positions, float[] normals, float[] colors, int[] indices) {
+        public void Load(float[] positions, float[] normals, float[] colors, float[] textures, int[] indices) {
             Vao = GL.GenVertexArray();
             GL.BindVertexArray(Vao);
-            LoadData(positions, 0, 3);
-            LoadData(normals, 1, 3);
-            LoadData(colors, 2, 4);
+            if(positions != null) LoadData(positions, 0, 3);
+            if(normals != null) LoadData(normals, 1, 3);
+            if(colors != null) LoadData(colors, 2, 4);
+            if(textures != null) LoadData(textures, 3, 2);
 
             LoadIndices(indices);
             GL.BindVertexArray(0);

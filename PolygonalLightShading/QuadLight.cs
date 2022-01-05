@@ -18,6 +18,8 @@ namespace PolygonalLightShading
         public Mesh FrontMesh { get; private set; }
         public Mesh BackMesh { get; private set; }
         public Vector3 Color { get; set; } = new Vector3(1, 1, 1);
+        public Texture Texture { get; set; }
+        public bool UseTexture = false;
         public float Intensity = 1f;
         public bool TwoSided = false;
         public Vector3 Position = new Vector3(0, 0, 0);
@@ -51,8 +53,8 @@ namespace PolygonalLightShading
             //light shader will not use these, but you can use these to pass texture coordinates for textured lights
             var vertexNormals = Enumerable.Repeat(0f, 12).ToArray();
             var vertexColors = Enumerable.Repeat(0f, 16).ToArray();
-            FrontMesh = new Mesh(frontVertexPosiitions.ToArray(), vertexNormals, vertexColors, new int[] { 0, 1, 2, 0, 2, 3 }, OpenTK.Graphics.OpenGL4.PrimitiveType.Triangles);
-            BackMesh = new Mesh(backVertexPosiitions.ToArray(), vertexNormals, vertexColors, new int[] { 0, 1, 2, 0, 2, 3 }, OpenTK.Graphics.OpenGL4.PrimitiveType.Triangles);
+            FrontMesh = new Mesh(frontVertexPosiitions.ToArray(), vertexNormals, vertexColors, new float[]{1, 0, 1, 1, 0, 1, 0, 0}, new int[] { 0, 1, 2, 0, 2, 3 }, OpenTK.Graphics.OpenGL4.PrimitiveType.Triangles);
+            BackMesh = new Mesh(backVertexPosiitions.ToArray(), vertexNormals, vertexColors, new float[]{0, 0, 0, 1, 1, 1, 1, 0}, new int[] { 0, 1, 2, 0, 2, 3 }, OpenTK.Graphics.OpenGL4.PrimitiveType.Triangles);
 
         }
 

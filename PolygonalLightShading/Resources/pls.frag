@@ -1,4 +1,4 @@
-﻿#version 330
+﻿#version 460
 // bind roughness   {label:"Roughness", default:0.25, min:0.01, max:1, step:0.001}
 // bind dcolor      {label:"Diffuse Color",  r:1.0, g:1.0, b:1.0}
 // bind scolor      {label:"Specular Color", r:1.0, g:1.0, b:1.0}
@@ -21,6 +21,8 @@ uniform vec3 lightVertices[4 * MAX_QUAD_LIGHTS];
 uniform vec3 lightColors[MAX_QUAD_LIGHTS];
 uniform float lightIntensity[MAX_QUAD_LIGHTS];
 uniform bool lightTwoSided[MAX_QUAD_LIGHTS];
+uniform bool useTexture[MAX_QUAD_LIGHTS];
+uniform sampler2D lightTexture[MAX_QUAD_LIGHTS];
 uniform int activeLightCount;
 
 const float LUT_SIZE  = 64.0;
@@ -32,6 +34,8 @@ const float pi = 3.14159265;
 in vec3 normal;
 in vec4 color;
 in vec3 position;
+
+out vec4 FragColor;
 
 vec3 mul(mat3 m, vec3 v) { return m * v; }
 
@@ -170,8 +174,32 @@ void ClipQuadToHorizon(inout vec3 L[5], out int n)
     L[4] = L[0];
 }
 
+vec3 FetchDiffuseFilteredTexture(sampler2D texLightFiltered, vec3 p1_, vec3 p2_, vec3 p3_, vec3 p4_)
+{
+    // area light plane basis
+    vec3 V1 = p2_ - p1_;
+    vec3 V2 = p4_ - p1_;
+    vec3 planeOrtho = (cross(V1, V2));
+    float planeAreaSquared = dot(planeOrtho, planeOrtho);
+    float planeDistxPlaneArea = dot(planeOrtho, p1_);
+    // orthonormal projection of (0,0,0) in area light space
+    vec3 P = planeDistxPlaneArea * planeOrtho / planeAreaSquared - p1_;
 
-vec3 LTC_Evaluate(vec3 N, vec3 V, vec3 P, mat3 Minv, vec3 points[4], bool twoSided)
+    // find tex coords of P
+    float dot_V1_V2 = dot(V1,V2);
+    float inv_dot_V1_V1 = 1.0 / dot(V1, V1);
+    vec3 V2_ = V2 - V1 * dot_V1_V2 * inv_dot_V1_V1;
+    vec2 Puv;
+    Puv.y = dot(V2_, P) / dot(V2_, V2_);
+    Puv.x = dot(V1, P)*inv_dot_V1_V1 - dot_V1_V2*inv_dot_V1_V1*Puv.y ;
+
+    // LOD
+    float d = abs(planeDistxPlaneArea) / pow(planeAreaSquared, 0.75);
+
+    return texture(texLightFiltered, vec2(0.125, 0.125) + 0.75 * Puv.yx, log(2048.0*d)/log(3.0) ).rgb;
+}
+
+vec3 LTC_Evaluate(vec3 N, vec3 V, vec3 P, mat3 Minv, vec3 points[4], bool twoSided, bool useTexture, sampler2D texFilteredMap)
 {
     // construct orthonormal basis around N
     vec3 T1, T2;
@@ -187,6 +215,10 @@ vec3 LTC_Evaluate(vec3 N, vec3 V, vec3 P, mat3 Minv, vec3 points[4], bool twoSid
     L[1] = mul(Minv, points[1] - P);
     L[2] = mul(Minv, points[2] - P);
     L[3] = mul(Minv, points[3] - P);
+
+    vec3 textureLight = vec3(1);
+    if(useTexture)
+        textureLight = FetchDiffuseFilteredTexture(texFilteredMap, L[0], L[1], L[2], L[3]);
 
     int n;
     ClipQuadToHorizon(L, n);
@@ -216,7 +248,7 @@ vec3 LTC_Evaluate(vec3 N, vec3 V, vec3 P, mat3 Minv, vec3 points[4], bool twoSid
 
     vec3 Lo_i = vec3(sum, sum, sum);
 
-    return Lo_i;
+    return Lo_i * textureLight;
 }
 
 // Misc. helpers
@@ -251,7 +283,7 @@ void main()
     vec2 uv = vec2(roughness, theta/(0.5*pi));
     uv = uv*LUT_SCALE + LUT_BIAS;
 
-    vec4 t = texture2D(ltc_mat, uv);
+    vec4 t = texture(ltc_mat, uv);
     //TODO implement skewness & stuff?
     mat3 Minv = mat3(
     vec3(  1,   0, t.y),
@@ -272,10 +304,10 @@ void main()
             lightCoords[3 - j] = lightVertices[4*i + j];
         }
 
-        vec3 spec = LTC_Evaluate(N, V, pos, Minv, lightCoords, lightTwoSided[i]);
-        spec *= texture2D(ltc_mag, uv).w;
+        vec3 spec = LTC_Evaluate(N, V, pos, Minv, lightCoords, lightTwoSided[i], useTexture[i], lightTexture[i]);
+        spec *= texture(ltc_mag, uv).w;
 
-        vec3 diff = LTC_Evaluate(N, V, pos, mat3(1), lightCoords, lightTwoSided[i]);
+        vec3 diff = LTC_Evaluate(N, V, pos, mat3(1), lightCoords, lightTwoSided[i], useTexture[i], lightTexture[i]);
 
         vec3 col = vec3(0);
         col  = lcol*(scol*spec + dcol*diff);
@@ -284,5 +316,5 @@ void main()
         lightingColor += col * lightColors[i];
     }
 
-    gl_FragColor = color * vec4(ToSRGB(ambient + lightingColor), 1.0);
+    FragColor = color * vec4(ToSRGB(ambient + lightingColor), 1.0);
 }

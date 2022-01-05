@@ -52,7 +52,7 @@ namespace PolygonalLightShading
 					indices.Add(int.Parse(str[2]));
 				}
 
-				return new Mesh(vertexPositions.ToArray(), vertexNormals.ToArray(), vertexColors.ToArray(), indices.ToArray(), OpenTK.Graphics.OpenGL4.PrimitiveType.Triangles);
+				return new Mesh(vertexPositions.ToArray(), vertexNormals.ToArray(), vertexColors.ToArray(), null, indices.ToArray(), OpenTK.Graphics.OpenGL4.PrimitiveType.Triangles);
 			}
         }
     }

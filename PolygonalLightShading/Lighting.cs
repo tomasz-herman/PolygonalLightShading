@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenTK.Graphics.OpenGL4;
 
 namespace PolygonalLightShading
 {
@@ -63,6 +64,30 @@ namespace PolygonalLightShading
             return data.ToArray();
         }
 
+        public int[] GetTexturesData()
+        {
+            var data = new List<int>();
+            for (var index = 0; index < lights.Count; index++)
+            {
+                lights[index].Texture.Use(TextureUnit.Texture0 + index);
+                data.Add(index);
+            }
+
+            return data.ToArray();
+        }
+        
+        public int[] GetTexturesUsageData()
+        {
+            var data = new List<int>();
+            for (var index = 0; index < lights.Count; index++)
+            {
+                lights[index].Texture.Use(TextureUnit.Texture0 + index);
+                data.Add(lights[index].UseTexture ? 1 : 0);
+            }
+
+            return data.ToArray();
+        }
+        
         public float[] GetIntensityData()
         {
             return lights.Select(l => l.Intensity).ToArray();
