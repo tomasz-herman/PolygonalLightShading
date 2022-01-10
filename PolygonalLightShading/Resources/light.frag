@@ -8,7 +8,7 @@ in vec3 color;
 void main()
 {
     if(useTexture) {
-        gl_FragColor = texture(tex, texCoord) * intensity;
+        gl_FragColor = vec4(color * texture(tex, texCoord).xyz * intensity, 1);
     } else {
         gl_FragColor = vec4(intensity * color, 1);
     }
