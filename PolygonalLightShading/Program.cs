@@ -35,7 +35,7 @@ namespace PolygonalLightShading
         private Vector3 lightOffColor = new Vector3(0, 0, 0);
         private Lighting lighting;
         private float defaultLightIntensity = 4f;
-        private Texture beer, flag, landscape;
+        private Texture shrek, beach, landscape;
         private bool drawDuck = true;
 
         public static void Main(string[] args)
@@ -58,8 +58,8 @@ namespace PolygonalLightShading
             camera.UpdateVectors();
             imGuiController = new ImGuiController(Size.X, Size.Y);
             landscape = new Texture("landscape.png");
-            beer = new Texture("beer.png");
-            flag = new Texture("flag.png");
+            shrek = new Texture("shrek.png");
+            beach = new Texture("beach.png");
 
             loaded = true;
 
@@ -141,7 +141,7 @@ namespace PolygonalLightShading
             light2.Width = light2.Height = 10;
             light2.Position = new Vector3(0, 6, 30);
             light2.Color = new Vector3(0, 1, 0);
-            light2.Texture = flag;
+            light2.Texture = beach;
             lighting.Add(light2);
 
             var light3 = new QuadLight(
@@ -154,7 +154,7 @@ namespace PolygonalLightShading
             light3.Rotation.Y = 315;
             light3.Position = new Vector3(-10, 6, 25);
             light3.Color = new Vector3(0, 0, 1);
-            light3.Texture = beer;
+            light3.Texture = shrek;
             lighting.Add(light3);
 
             foreach (var light in lighting)
@@ -194,8 +194,8 @@ namespace PolygonalLightShading
             duck.Dispose();
             
             landscape.Dispose();
-            flag.Dispose();
-            beer.Dispose();
+            beach.Dispose();
+            shrek.Dispose();
             
             GL.DeleteTexture(ltc_mat);
             GL.DeleteTexture(ltc_mag);
