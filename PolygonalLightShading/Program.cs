@@ -28,13 +28,15 @@ namespace PolygonalLightShading
 
         private bool loaded = false;
 
-        private List<Mesh> sceneObjects = new List<Mesh>();
+        private List<Mesh> walls = new List<Mesh>();
+        private Mesh duck;
 
         private Vector3 ambientColor;
         private Vector3 lightOffColor = new Vector3(0, 0, 0);
         private Lighting lighting;
         private float defaultLightIntensity = 4f;
         private Texture beer, flag, landscape;
+        private bool drawDuck = true;
 
         public static void Main(string[] args)
         {
@@ -88,31 +90,30 @@ namespace PolygonalLightShading
             float halfpi = (float)Math.PI / 2f;
             Mesh bottomWall = new Mesh(wallVertices, wallNormals, wallColors, null, wallIndices, PrimitiveType.Triangles);
             bottomWall.ModelMatrix = Matrix4.CreateScale(cubeSize, cubeSize, cubeSize) * Matrix4.CreateTranslation(0, 0, cubeSize / 2);
-            sceneObjects.Add(bottomWall);
+            walls.Add(bottomWall);
 
             Mesh leftWall = new Mesh(wallVertices, wallNormals, wallColors, null, wallIndices, PrimitiveType.Triangles);
             leftWall.ModelMatrix = Matrix4.CreateRotationZ(halfpi) * Matrix4.CreateScale(cubeSize) * Matrix4.CreateTranslation(cubeSize / 2, cubeSize / 2, cubeSize / 2);
-            sceneObjects.Add(leftWall);
+            walls.Add(leftWall);
 
             Mesh rightWall = new Mesh(wallVertices, wallNormals, wallColors, null, wallIndices, PrimitiveType.Triangles);
             rightWall.ModelMatrix = Matrix4.CreateRotationZ(-halfpi) * Matrix4.CreateScale(cubeSize) * Matrix4.CreateTranslation(-cubeSize / 2, cubeSize / 2, cubeSize / 2);
-            sceneObjects.Add(rightWall);
+            walls.Add(rightWall);
 
             Mesh topWall = new Mesh(wallVertices, wallNormals, wallColors, null, wallIndices, PrimitiveType.Triangles);
             topWall.ModelMatrix = Matrix4.CreateRotationX(2 *halfpi) * Matrix4.CreateScale(cubeSize) * Matrix4.CreateTranslation(0, cubeSize, cubeSize / 2);
-            sceneObjects.Add(topWall);
+            walls.Add(topWall);
 
             Mesh backWall = new Mesh(wallVertices, wallNormals, wallColors, null, wallIndices, PrimitiveType.Triangles);
             backWall.ModelMatrix = Matrix4.CreateRotationX(-halfpi) * Matrix4.CreateScale(cubeSize) * Matrix4.CreateTranslation(0, cubeSize / 2, cubeSize);
-            sceneObjects.Add(backWall);
+            walls.Add(backWall);
 
             float duckScale = 0.05f;
             Vector3 duckPosition = new Vector3(0, 0, cubeSize / 2);
             string duckFile = "duck.txt";
             Vector4 duckColor = new Vector4(1f, 1f, 1f, 1f);
-            Mesh duckMesh = DuckLoader.Load(Utils.LoadResourceStream(duckFile), duckColor);
-            duckMesh.ModelMatrix = Matrix4.CreateScale(duckScale) * Matrix4.CreateTranslation(duckPosition);
-            sceneObjects.Add(duckMesh);
+            duck = DuckLoader.Load(Utils.LoadResourceStream(duckFile), duckColor);
+            duck.ModelMatrix = Matrix4.CreateScale(duckScale) * Matrix4.CreateTranslation(duckPosition);
 
             ambientColor = new Vector3(0.1f, 0.1f, 0.1f);
 
@@ -124,7 +125,7 @@ namespace PolygonalLightShading
                 new Vector3(0.5f, 0.5f, 0),
                 new Vector3(0.5f, -0.5f, 0)
             );
-            light1.Scale = 10;
+            light1.Width = light1.Height = 10;
             light1.Rotation.Y = 45;
             light1.Position = new Vector3(10, 6, 25);
             light1.Color = new Vector3(1, 0, 0);
@@ -137,7 +138,7 @@ namespace PolygonalLightShading
                 new Vector3(0.5f, 0.5f, 0),
                 new Vector3(0.5f, -0.5f, 0)
             );
-            light2.Scale = 10;
+            light2.Width = light2.Height = 10;
             light2.Position = new Vector3(0, 6, 30);
             light2.Color = new Vector3(0, 1, 0);
             light2.Texture = flag;
@@ -149,7 +150,7 @@ namespace PolygonalLightShading
                 new Vector3(0.5f, 0.5f, 0),
                 new Vector3(0.5f, -0.5f, 0)
             );
-            light3.Scale = 10;
+            light3.Width = light3.Height = 10;
             light3.Rotation.Y = 315;
             light3.Position = new Vector3(-10, 6, 25);
             light3.Color = new Vector3(0, 0, 1);
@@ -187,8 +188,10 @@ namespace PolygonalLightShading
             lightShader.Dispose();
             imGuiController.Dispose();
             
-            foreach(var mesh in sceneObjects)
+            foreach(var mesh in walls)
                 mesh.Dispose();
+            
+            duck.Dispose();
             
             landscape.Dispose();
             flag.Dispose();
@@ -258,10 +261,16 @@ namespace PolygonalLightShading
             GL.BindTexture(TextureTarget.Texture2D, ltc_mag);
             ltcShader.LoadInteger("ltc_mag", 30);
             
-            foreach(var mesh in sceneObjects)
+            foreach(var mesh in walls)
             {
                 ltcShader.LoadMatrix4("model", mesh.ModelMatrix);
                 mesh.Render();
+            }
+
+            if (drawDuck)
+            {
+                ltcShader.LoadMatrix4("model", duck.ModelMatrix);
+                duck.Render();
             }
 
             lightShader.Use();
@@ -315,6 +324,8 @@ namespace PolygonalLightShading
                     ImGui.SliderFloat($"Rotation X {i+1}", ref light.Rotation.X, 0f, 360f);
                     ImGui.SliderFloat($"Rotation Y {i+1}", ref light.Rotation.Y, 0f, 360f);
                     ImGui.SliderFloat($"Rotation Z {i+1}", ref light.Rotation.Z, 0f, 360f);
+                    ImGui.SliderFloat($"Width {i+1}", ref light.Width, 0f, 100f);
+                    ImGui.SliderFloat($"Height {i+1}", ref light.Height, 0f, 100f);
                     ImGui.SliderFloat($"Intensity {i+1}", ref light.Intensity, 0f, 10f);
                     ImGui.Checkbox($"Two-sided {i+1}", ref light.TwoSided);
                     ImGui.Checkbox($"Use Texture {i+1}", ref light.UseTexture);
@@ -324,6 +335,7 @@ namespace PolygonalLightShading
                     light.Color = new Vector3(color.X, color.Y, color.Z);
                 }
             }
+            ImGui.Checkbox("Draw duck", ref drawDuck);
             ImGui.End();
             
             imGuiController.Render();
