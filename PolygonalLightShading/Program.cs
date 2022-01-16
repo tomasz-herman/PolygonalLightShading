@@ -58,7 +58,7 @@ namespace PolygonalLightShading
             camera.UpdateVectors();
             imGuiController = new ImGuiController(Size.X, Size.Y);
             shrek = new Texture("shrek.png");
-            shrekLod = new Texture("shrek0.png", "shrek1.png", "shrek2.png", "shrek3.png", "shrek4.png", "shrek5.png", "shrek6.png", "shrek7.png", "shrek8.png", "shrek9.png", "shrek10.png");
+            shrekLod = new Texture("shrek0.png", "shrek1.png", "shrek2.png", "shrek3.png", "shrek4.png", "shrek5.png", "shrek6.png", "shrek7.png", "shrek8.png", "shrek9.png", "shrek10.png", "shrek11.png");
 
             loaded = true;
 
