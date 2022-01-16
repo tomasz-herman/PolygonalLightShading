@@ -12,16 +12,32 @@ namespace PolygonalLightShading
     {
         private int _handle;
 
-        public Texture(string path)
+        public Texture(string path, params string[] lods)
         {
             _handle = GL.GenTexture();
             Use();
             LoadTexture(path);
+            int lvl = 1;
+            foreach (var lod in lods)
+            {
+                LoadTexture(lod, lvl);
+                lvl++;
+            }
+            
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
+                (int) TextureMinFilter.LinearMipmapLinear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
+                (int) TextureMagFilter.Linear);
+
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int) TextureWrapMode.ClampToEdge);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int) TextureWrapMode.ClampToEdge);
+
+            if(lods.Length == 0) GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
             
             GL.BindTexture(TextureTarget.Texture2D, 0);
         }
 
-        public void LoadTexture(string path)
+        public void LoadTexture(string path, int level = 0)
         {
             var assembly = Assembly.GetExecutingAssembly();
             using var stream = assembly.GetManifestResourceStream($"PolygonalLightShading.Resources.{path}");
@@ -43,23 +59,13 @@ namespace PolygonalLightShading
             }
             
             GL.TexImage2D(TextureTarget.Texture2D, 
-                0, 
+                level, 
                 PixelInternalFormat.Rgba, 
                 image.Width, image.Height, 
                 0, 
                 PixelFormat.Rgba, 
                 PixelType.UnsignedByte, 
                 pixels.ToArray());
-            
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
-                (int) TextureMinFilter.LinearMipmapLinear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
-                (int) TextureMagFilter.Linear);
-
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int) TextureWrapMode.ClampToEdge);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int) TextureWrapMode.ClampToEdge);
-            
-            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
         }
 
         public void Use(TextureUnit unit = TextureUnit.Texture0)

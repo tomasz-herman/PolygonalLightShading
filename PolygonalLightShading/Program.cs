@@ -31,11 +31,11 @@ namespace PolygonalLightShading
         private List<Mesh> walls = new List<Mesh>();
         private Mesh duck;
 
-        private Vector3 ambientColor;
+        private System.Numerics.Vector3 ambientColor = new(0.1f);
         private Vector3 lightOffColor = new Vector3(0, 0, 0);
         private Lighting lighting;
         private float defaultLightIntensity = 4f;
-        private Texture shrek, beach, landscape;
+        private Texture shrek, shrekLod;
         private bool drawDuck = true;
 
         public static void Main(string[] args)
@@ -57,9 +57,8 @@ namespace PolygonalLightShading
             camera = new PerspectiveCamera();
             camera.UpdateVectors();
             imGuiController = new ImGuiController(Size.X, Size.Y);
-            landscape = new Texture("landscape.png");
             shrek = new Texture("shrek.png");
-            beach = new Texture("beach.png");
+            shrekLod = new Texture("shrek0.png", "shrek1.png", "shrek2.png", "shrek3.png", "shrek4.png", "shrek5.png", "shrek6.png", "shrek7.png", "shrek8.png", "shrek9.png", "shrek10.png");
 
             loaded = true;
 
@@ -115,8 +114,6 @@ namespace PolygonalLightShading
             duck = DuckLoader.Load(Utils.LoadResourceStream(duckFile), duckColor);
             duck.ModelMatrix = Matrix4.CreateScale(duckScale) * Matrix4.CreateTranslation(duckPosition);
 
-            ambientColor = new Vector3(0.1f, 0.1f, 0.1f);
-
             lighting = new Lighting();
 
             var light1 = new QuadLight(
@@ -129,7 +126,8 @@ namespace PolygonalLightShading
             light1.Rotation.Y = 45;
             light1.Position = new Vector3(10, 6, 25);
             light1.Color = new Vector3(1, 0, 0);
-            light1.Texture = landscape;
+            light1.Texture = shrek;
+            light1.TextureLod = shrekLod;
             lighting.Add(light1);
 
             var light2 = new QuadLight(
@@ -141,7 +139,8 @@ namespace PolygonalLightShading
             light2.Width = light2.Height = 10;
             light2.Position = new Vector3(0, 6, 30);
             light2.Color = new Vector3(0, 1, 0);
-            light2.Texture = beach;
+            light2.Texture = shrek;
+            light2.TextureLod = shrekLod;
             lighting.Add(light2);
 
             var light3 = new QuadLight(
@@ -155,6 +154,7 @@ namespace PolygonalLightShading
             light3.Position = new Vector3(-10, 6, 25);
             light3.Color = new Vector3(0, 0, 1);
             light3.Texture = shrek;
+            light3.TextureLod = shrekLod;
             lighting.Add(light3);
 
             foreach (var light in lighting)
@@ -193,9 +193,8 @@ namespace PolygonalLightShading
             
             duck.Dispose();
             
-            landscape.Dispose();
-            beach.Dispose();
             shrek.Dispose();
+            shrekLod.Dispose();
             
             GL.DeleteTexture(ltc_mat);
             GL.DeleteTexture(ltc_mag);
@@ -243,13 +242,13 @@ namespace PolygonalLightShading
             ltcShader.LoadMatrix4("view", camera.GetViewMatrix());
             ltcShader.LoadMatrix4("proj", camera.GetProjectionMatrix());
             ltcShader.LoadFloat3("cameraPosition", camera.Position);
-            ltcShader.LoadFloat3("ambient", ambientColor);
+            ltcShader.LoadFloat3("ambient", new Vector3(ambientColor.X, ambientColor.Y, ambientColor.Z));
 
             ltcShader.LoadFloat3("lightVertices", lighting.GetVertexData());
             ltcShader.LoadFloat3("lightColors", lighting.GetColorData());
             ltcShader.LoadFloat("lightIntensity", lighting.GetIntensityData());
             ltcShader.LoadInt("lightTwoSided", lighting.GetTwoSidedData());
-            ltcShader.LoadInt("lightTexture", lighting.GetTexturesData());
+            ltcShader.LoadInt("lightTexture", lighting.GetTexturesLodData());
             ltcShader.LoadInt("useTexture", lighting.GetTexturesUsageData());
             ltcShader.LoadInteger("activeLightCount", lighting.Count());
             
@@ -276,6 +275,7 @@ namespace PolygonalLightShading
             lightShader.Use();
             lightShader.LoadMatrix4("view", camera.GetViewMatrix());
             lightShader.LoadMatrix4("proj", camera.GetProjectionMatrix());
+            lighting.GetTexturesData();
 
             for (int i = 0; i < lighting.Count(); i++)
             {
@@ -311,6 +311,7 @@ namespace PolygonalLightShading
                 ImGui.SliderFloat("Roughness", ref roughness, 0.00f, 1f);
                 ImGui.ColorPicker3("Diffuse Color", ref dcolor);
                 ImGui.ColorPicker3("Specular Color", ref scolor);
+                ImGui.ColorPicker3("Ambient Color", ref ambientColor);
             }
             for(int i = 0; i < lighting.Count(); i++)
             {

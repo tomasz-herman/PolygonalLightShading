@@ -21,6 +21,7 @@ namespace PolygonalLightShading
         public Mesh BackMesh { get; private set; }
         public Vector3 Color { get; set; } = new(1, 1, 1);
         public Texture Texture { get; set; }
+        public Texture TextureLod { get; set; }
         public bool UseTexture = false;
         public float Intensity = 1f;
         public bool TwoSided = false;

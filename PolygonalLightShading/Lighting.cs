@@ -76,12 +76,23 @@ namespace PolygonalLightShading
             return data.ToArray();
         }
         
+        public int[] GetTexturesLodData()
+        {
+            var data = new List<int>();
+            for (var index = 0; index < lights.Count; index++)
+            {
+                lights[index].TextureLod.Use(TextureUnit.Texture0 + index);
+                data.Add(index);
+            }
+
+            return data.ToArray();
+        }
+        
         public int[] GetTexturesUsageData()
         {
             var data = new List<int>();
             for (var index = 0; index < lights.Count; index++)
             {
-                lights[index].Texture.Use(TextureUnit.Texture0 + index);
                 data.Add(lights[index].UseTexture ? 1 : 0);
             }
 
