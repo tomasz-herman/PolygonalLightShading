@@ -36,6 +36,7 @@ namespace PolygonalLightShading
         private Lighting lighting;
         private float defaultLightIntensity = 4f;
         private Texture shrek, shrekLod;
+        private Texture paints, paintsLod;
         private bool drawDuck = true;
 
         public static void Main(string[] args)
@@ -58,7 +59,9 @@ namespace PolygonalLightShading
             camera.UpdateVectors();
             imGuiController = new ImGuiController(Size.X, Size.Y);
             shrek = new Texture("shrek.png");
+            paints = new Texture("paints.png");
             shrekLod = new Texture("shrek0.png", "shrek1.png", "shrek2.png", "shrek3.png", "shrek4.png", "shrek5.png", "shrek6.png", "shrek7.png", "shrek8.png", "shrek9.png", "shrek10.png", "shrek11.png");
+            paintsLod = new Texture("paints0.png", "paints1.png", "paints2.png", "paints3.png", "paints4.png", "paints5.png", "paints6.png", "paints7.png", "paints8.png", "paints9.png", "paints10.png", "paints11.png");
 
             loaded = true;
 
@@ -126,8 +129,8 @@ namespace PolygonalLightShading
             light1.Rotation.Y = 45;
             light1.Position = new Vector3(10, 6, 25);
             light1.Color = new Vector3(1, 0, 0);
-            light1.Texture = shrek;
-            light1.TextureLod = shrekLod;
+            light1.Texture = paints;
+            light1.TextureLod = paintsLod;
             lighting.Add(light1);
 
             var light2 = new QuadLight(
@@ -153,8 +156,8 @@ namespace PolygonalLightShading
             light3.Rotation.Y = 315;
             light3.Position = new Vector3(-10, 6, 25);
             light3.Color = new Vector3(0, 0, 1);
-            light3.Texture = shrek;
-            light3.TextureLod = shrekLod;
+            light3.Texture = paints;
+            light3.TextureLod = paintsLod;
             lighting.Add(light3);
 
             foreach (var light in lighting)
